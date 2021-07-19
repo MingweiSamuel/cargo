@@ -234,7 +234,12 @@ fn run_doc_tests(
         }
 
         for arg in test_args {
-            p.arg("--test-args").arg(arg);
+            // We special-case "--nocapture" because rustdoc needs to handle it directly.
+            if *arg == "--nocapture" {
+                p.arg(arg);
+            } else {
+                p.arg("--test-args").arg(arg);
+            }
         }
 
         if config.shell().verbosity() == Verbosity::Quiet {
