@@ -4575,3 +4575,42 @@ fn check_cfg_features_doc() {
         )
         .run();
 }
+
+#[cargo_test]
+fn doctest_nocapture() {
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.0.1"
+                authors = []
+                [features]
+                bar = []
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+                /// ```rust
+                /// println!("hello cake!");
+                /// ```
+                pub fn hello() {}
+            "#,
+        )
+        .build();
+
+    p.cargo("test -- --nocapture")
+        .with_stderr(
+            "\
+[COMPILING] foo [..]
+[FINISHED] test [unoptimized + debuginfo] target(s) in [..]
+[RUNNING] [..] (target/debug/deps/foo[..][EXE])
+[DOCTEST] foo",
+        )
+        .with_stdout_contains("running 0 tests")
+        .with_stdout_contains("test [..] ... ok")
+        .with_stdout_contains("hello cake!")
+        .run();
+}
